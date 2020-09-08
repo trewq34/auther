@@ -1,35 +1,24 @@
-class AdfsProvider():
-    def __init___(self):
+import configparser
+import requests
+
+from auther.providers.BaseProvider import BaseProvider
+
+class AdfsProvider(BaseProvider):
+    def __init__(self, idp_url):
+        self.idp_url = f'https://{idp_url}/adfs/ls/IdpInitiatedSignOn.aspx?loginToRp=urn:amazon:webservices'
+
+    def login(self, username, password):
+        pass
+
+    def _authenticate(self):
+        pass
+
+    def _get_roles(self):
+        pass
+
+    def assume_role(self, role):
         pass
 
     @staticmethod
     def prefix():
         return 'adfs-'
-
-    @staticmethod
-    def provider_options():
-        return [
-            {
-                "short": "i",
-                "long": "idp-url",
-                'help': 'Your ADFS AWS sign in URL',
-                "type": str,
-                "required": True
-            },
-            {
-                "short": "u",
-                "long": "username",
-                'help': 'The username you use to sign in',
-                "type": str,
-                "required": True
-            },
-            {
-                "short": "p",
-                "long": "password",
-                'help': 'Your password',
-                "type": str,
-                "required": True,
-                'hide_input': True,
-                # 'prompt': True
-            }
-        ]
