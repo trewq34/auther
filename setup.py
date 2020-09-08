@@ -6,6 +6,9 @@ setup(
     packages=["auther"],
     install_requires=[
         "Click",
+        'requests',
+        'boto3',
+        'bs4'
     ],
     entry_points="""
         [console_scripts]

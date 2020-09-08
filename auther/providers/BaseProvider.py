@@ -1,0 +1,85 @@
+import configparser
+import re
+
+from auther.exceptions import *
+
+class BaseProvider:
+    @staticmethod
+    def provider_options():
+        return [
+            {
+                "function": "idp_url",
+                "long": "idp-url",
+                'help': 'Your ADFS AWS sign in URL',
+                "type": str,
+                "required": True
+            },
+            {
+                "function": "username",
+                "long": "username",
+                'help': 'The username you use to sign in',
+                "type": str,
+                "required": True
+            }
+        ]
+
+    @staticmethod
+    def list_options():
+        return [opt.get('long') for opt in BaseProvider.provider_options()]
+
+    @staticmethod
+    def write_config(options, profile, aws_config):
+        config = configparser.ConfigParser()
+        config.read(aws_config)
+
+        if not BaseProvider._has_profile(config, profile):
+            if profile == 'default':
+                config.add_section(profile)
+            else:
+                config.add_section(f'profile {profile}')
+
+        for key, value in options.items():
+            if profile != 'default':
+                config.set(f'profile {profile}', key.replace('-', '_'), value)
+            else:
+                config.set(profile, key.replace('-', '_'), value)
+
+        with open(aws_config, 'w') as config_file:
+            config.write(config_file)
+
+    @staticmethod
+    def _has_profile(config, profile):
+        if profile != 'default':
+            if not config.has_section(f'profile {profile}'):
+                return False
+        else:
+            if not config.has_section(profile):
+                return False
+
+        return True
+
+    @staticmethod
+    def get_config(config_file, profile, provider, option_list):
+        config = configparser.ConfigParser()
+        config.read(config_file)
+
+        if not BaseProvider._has_profile(config, profile) or not BaseProvider._is_profile_configured(config, profile, provider, option_list):
+            raise ProviderNotConfigured(f'The AWS profile {profile} has not been configured to work with auther provider {provider}. Run "auther configure" first!')
+
+        if profile != 'default':
+            return dict(config.items(f'profile {profile}'))
+        else:
+            return dict(config.items(profile))
+
+    @staticmethod
+    def _is_profile_configured(config, profile, provider, option_list):
+        if profile != 'default':
+            for opt in option_list:
+                if f'{provider}_{opt}'.replace('-', '_') not in config.options(f'profile {profile}'):
+                    return False
+        else:
+            for opt in option_list:
+                if f'{provider}_{opt}'.replace('-', '_') not in config.options(profile):
+                    return False
+
+        return True
