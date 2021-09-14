@@ -6,6 +6,11 @@ setup(
     packages=["auther"],
     install_requires=[
         "Click",
+        'requests',
+        'boto3',
+        'bs4',
+        'pyppeteer',
+        'asyncio'
     ],
     entry_points="""
         [console_scripts]
