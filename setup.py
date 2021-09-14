@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 setup(
     name="auther",
-    version="0.1",
-    packages=["auther"],
+    version="0.0.2",
+    packages=[package for package in find_namespace_packages('.') if 'auther' in package],
     install_requires=[
         "Click",
         'requests',
