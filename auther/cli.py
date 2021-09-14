@@ -91,7 +91,7 @@ def login(**kwargs):
 
     if len(roles) > 1:
         _output_roles(roles)
-        chosen_role = click.prompt(f'Enter the index of your chosen role', type=str)
+        chosen_role = click.prompt(f'Enter the index of your chosen role', type=int)
     else:
         chosen_role = 0
 
