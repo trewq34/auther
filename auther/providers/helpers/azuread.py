@@ -1,3 +1,9 @@
+"""
+Original code from David Poirier's aws_azuread_login project (https://github.com/david-poirier/aws_azuread_login) and licensed under Apache-2.0
+
+Modified to work with one or many IAM roles
+"""
+
 import uuid
 import zlib
 import base64

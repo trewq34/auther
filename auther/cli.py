@@ -24,7 +24,7 @@ def configure(**kwargs):
         prefix = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').prefix()
     except AttributeError:
         raise ProviderNotFound(f"The provider {provider} doesn't have the correct module structure.")
-    except NameError:
+    except (NameError, KeyError):
         raise ProviderNotFound(f"The provider {provider} doesn't exist")
 
     options = {}
@@ -60,7 +60,7 @@ def login(**kwargs):
         config = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').get_config(kwargs['aws_config'], kwargs['profile'], provider, opt_list)
     except AttributeError:
         raise ProviderNotFound(f"The provider {provider} doesn't have the correct module structure.")
-    except NameError:
+    except (NameError, KeyError):
         raise ProviderNotFound(f"The provider {provider} doesn't exist")
 
     opts = {
@@ -71,11 +71,6 @@ def login(**kwargs):
     
     for option in provider_options:
         opts[option.get('function')] = config.get(f"{provider}_{option.get('function')}")
-    # username = next((config.get(f"{provider}_{option.get('function')}") for option in provider_options if option.get('function') == 'username'), None)
-    # idp_url = next((config.get(f"{provider}_{option.get('function')}") for option in provider_options if option.get('function') == 'idp_url'), None)
-
-    # if not opts.get('username'):
-    #     raise ProviderNotConfigured(f"The provider {provider} doesn't have the correct option structure")
 
     opts['password'] = click.prompt(f'Enter the password for {opts.get("username")}', type=str, hide_input=True)
 
@@ -87,7 +82,7 @@ def login(**kwargs):
 
     roles = auth_provider.login()
     if not roles:
-        raise ProviderAuthenticationError(f'Provider {provider} return no available roles')
+        raise ProviderAuthenticationError(f'Provider {provider} returned no available roles')
 
     if len(roles) > 1:
         _output_roles(roles)
