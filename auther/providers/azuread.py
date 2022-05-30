@@ -1,8 +1,8 @@
 import configparser
 import requests
+import auther.providers.helpers.azuread as helper
 
 from auther.providers.BaseProvider import BaseProvider
-from auther.providers.helpers.azuread import *
 
 class AzureadProvider(BaseProvider):
     def __init__(self, options):
@@ -12,8 +12,8 @@ class AzureadProvider(BaseProvider):
 
     # login to Azure AD, overwrite value of self.password and del it once used
     def login(self):
-        url = create_login_url(self.app_id, self.tenant_id)
-        roles = do_login(url, username=self.username, password=self.password)
+        url = helper.create_login_url(self.app_id, self.tenant_id)
+        roles = helper.do_login(url, username=self.username, password=self.password)
 
         # destroy password
         self.password = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'

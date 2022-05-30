@@ -6,3 +6,9 @@ class ProviderNotConfigured(Exception):
 
 class ProviderAuthenticationError(Exception):
     pass
+
+class ProviderNotImplementedError(Exception):
+    pass
+
+class RoleDurationError(Exception):
+    pass

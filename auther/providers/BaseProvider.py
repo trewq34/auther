@@ -4,6 +4,7 @@ import boto3
 from datetime import datetime
 
 from auther.exceptions import *
+from botocore.exceptions import ClientError
 
 class BaseProvider:
     @staticmethod
@@ -105,12 +106,17 @@ class BaseProvider:
 
         print(f'Assuming role {role[1]}')
 
-        result = client.assume_role_with_saml(
-            RoleArn=role[1],
-            PrincipalArn=role[2],
-            SAMLAssertion=role[0],
-            DurationSeconds=duration,
-        )
+        try:
+            result = client.assume_role_with_saml(
+                RoleArn=role[1],
+                PrincipalArn=role[2],
+                SAMLAssertion=role[0],
+                DurationSeconds=duration,
+            )
+        except ClientError as ex:
+            if 'The requested DurationSeconds exceeds the MaxSessionDuration set for this role' in str(ex):
+                raise RoleDurationError(f'{int(duration / 60 / 60)} hour(s) is too high for this role. Try a lower value.')
+            raise ex
 
         creds = {
             'aws_access_key_id': result["Credentials"]["AccessKeyId"],

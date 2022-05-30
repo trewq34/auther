@@ -10,7 +10,7 @@ from pathlib import Path
 def main():
     pass
 
-@main.command('configure')
+@main.command('configure', help='Configure a chosen identiy provider for use')
 @click.option('--aws-config', default=f'{Path.home()}/.aws/config', help='The path to your AWS config file', required=False)
 @click.option('--profile', default='default', help='The name of the AWS profile', required=False)
 @click.option('--region', default='eu-west-1', help='Your prefered AWS region', required=False)
@@ -46,7 +46,7 @@ def configure(**kwargs):
 
     getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').write_config(options, kwargs['profile'], kwargs['aws_config'])
 
-@main.command()
+@main.command('login', help='Authenticate using a specified identity provider')
 @click.option('--provider', default='azuread', help='The federated provider', required=False)
 @click.option('--profile', default='default', help='The name of the AWS profile', required=False)
 @click.option('--aws-config', default=f'{Path.home()}/.aws/config', help='The path to your AWS config file', required=False)

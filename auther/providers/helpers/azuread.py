@@ -11,6 +11,7 @@ import urllib
 import pyppeteer
 import asyncio
 import getpass
+import os
 import xml.etree.ElementTree
 from datetime import datetime
 
@@ -42,7 +43,15 @@ def create_login_url(app_id, tenant_id):
 async def _load_login(url, headless):
     launch_options = {"headless": headless}
 
-    browser = await pyppeteer.launch(options=launch_options)
+    chromium_exe = os.environ.get('CHROME_BIN', '')
+
+    browser = await pyppeteer.launch(executablePath=chromium_exe , options=launch_options, args=[
+                '--no-sandbox',
+                '--single-process',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--no-zygote'
+            ])
     page = await browser.newPage()
     response = await page.goto(
         url,
