@@ -130,8 +130,7 @@ async def _input_password(page, password):
             await asyncio.sleep(0.25)
 
 async def _input_code(page, code):
-    input_selector = 'input[type="tel"][name="otc"]'
-    checkbox_selector = 'input[type="checkbox"][name="rememberMFA"]'
+    input_selector = 'input[name="otc"]'
     submit_selector = 'input[type="submit"][value="Verify"]'
     error_selector = "#idSpan_SAOTCC_Error_OTC"
 
@@ -140,7 +139,6 @@ async def _input_code(page, code):
             code = input("One-time code: ")
 
         await page.type(input_selector, code)
-        await page.click(checkbox_selector)
         await page.click(submit_selector)
 
         while True:
@@ -151,7 +149,6 @@ async def _input_code(page, code):
                 await page.evaluate(
                     f"() => document.querySelector('{input_selector}').value = ''"
                 )
-                await page.click(checkbox_selector)
                 print("Incorrect code, try again")
                 break
             # wait for one of the above to appear
@@ -214,7 +211,7 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
             page, 'input[type="password"][name="passwd"]'
         ):
             await _input_password(page, password)
-        elif await _check_for_visible_element(page, 'input[type="tel"][name="otc"]'):
+        elif await _check_for_visible_element(page, 'input[name="otc"]'):
             await _input_code(page, None)
         elif await _check_for_visible_element(
             page, 'input[type="checkbox"][name="DontShowAgain"]'

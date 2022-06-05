@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="auther",
-    version="0.0.4",
+    version="0.0.5",
     author="Kamran Ali",
     author_email="auther@trewq34.com",
     description="Command line tool for AWS CLI authentication",
@@ -22,7 +22,7 @@ setup(
     ],
     packages=[package for package in find_namespace_packages('.') if 'auther' in package],
     install_requires=[
-        "Click",
+        "typer",
         'requests',
         'boto3',
         'bs4',
@@ -31,6 +31,6 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        auther=auther.cli:main
+        auther=auther.cli:app
     """,
 )

@@ -1,24 +1,20 @@
-import click
+import typer
 
 from auther.exceptions import *
 from auther.providers import *
 
 from pathlib import Path
 
-@click.group()
-@click.version_option()
-def main():
-    pass
+app = typer.Typer(no_args_is_help=True)
 
-@main.command('configure', help='Configure a chosen identiy provider for use')
-@click.option('--aws-config', default=f'{Path.home()}/.aws/config', help='The path to your AWS config file', required=False)
-@click.option('--profile', default='default', help='The name of the AWS profile', required=False)
-@click.option('--region', default='eu-west-1', help='Your prefered AWS region', required=False)
-@click.option('--output', default='json', help='Your prefered output format', required=False)
-@click.option('--provider', default='azuread', help='The federated provider', required=False)
-def configure(**kwargs):
-    provider = kwargs['provider']
-
+@app.command(help='Configure a chosen identiy provider for use')
+def configure(
+    aws_config: str = typer.Option(f'{Path.home()}/.aws/config', help='The path to your AWS config file'),
+    profile: str = typer.Option('default', help='The name of the AWS profile'),
+    region: str = typer.Option('eu-west-1', help='Your prefered AWS region'),
+    output: str = typer.Option('json', help='Your prefered AWS CLI output format'),
+    provider: str = typer.Option('azuread', help='The federated provider')
+):
     try:
         provider_options = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').provider_options()
         prefix = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').prefix()
@@ -39,40 +35,39 @@ def configure(**kwargs):
         del opt['required']
 
         if option != 'password':
-            options[prefix + option] = click.prompt(text, **opt)
+            options[prefix + option] = typer.prompt(text, **opt)
 
-    options['output'] = kwargs['output']
-    options['region'] = kwargs['region']
+    options['output'] = output
+    options['region'] = region
 
-    getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').write_config(options, kwargs['profile'], kwargs['aws_config'])
+    getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').write_config(options, profile, aws_config)
 
-@main.command('login', help='Authenticate using a specified identity provider')
-@click.option('--provider', default='azuread', help='The federated provider', required=False)
-@click.option('--profile', default='default', help='The name of the AWS profile', required=False)
-@click.option('--aws-config', default=f'{Path.home()}/.aws/config', help='The path to your AWS config file', required=False)
-@click.option('--aws-creds', default=f'{Path.home()}/.aws/credentials', help='The path to your AWS credentials file', required=False)
-def login(**kwargs):
-    provider = kwargs['provider']
-
+@app.command(help='Authenticate using a specified identity provider')
+def login(
+    provider: str = typer.Option('azuread', help='The federated provider'),
+    profile: str = typer.Option('default', help='The name of the AWS profile'),
+    aws_config: str = typer.Option(f'{Path.home()}/.aws/config', help='The path to your AWS config file'),
+    aws_creds: str = typer.Option(f'{Path.home()}/.aws/credentials', help='The path to your AWS credentials file'),
+):
     try:
         opt_list = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').list_options()
         provider_options = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').provider_options()
-        config = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').get_config(kwargs['aws_config'], kwargs['profile'], provider, opt_list)
+        config = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider').get_config(aws_config, profile, provider, opt_list)
     except AttributeError:
         raise ProviderNotFound(f"The provider {provider} doesn't have the correct module structure.")
     except (NameError, KeyError):
         raise ProviderNotFound(f"The provider {provider} doesn't exist")
 
     opts = {
-        'profile': kwargs['profile'],
-        'aws_config': kwargs['aws_config'],
-        'aws_creds': kwargs['aws_creds']
+        'profile': profile,
+        'aws_config': aws_config,
+        'aws_creds': aws_creds
     }
     
     for option in provider_options:
         opts[option.get('function')] = config.get(f"{provider}_{option.get('function')}")
 
-    opts['password'] = click.prompt(f'Enter the password for {opts.get("username")}', type=str, hide_input=True)
+    opts['password'] = typer.prompt(f'Enter the password for {opts.get("username")}', type=str, hide_input=True)
 
     auth_provider = getattr(globals()[provider], f'{provider.replace("_", "").title()}Provider')(opts)
 
@@ -85,18 +80,16 @@ def login(**kwargs):
         raise ProviderAuthenticationError(f'Provider {provider} returned no available roles')
 
     if len(roles) > 1:
-        _output_roles(roles)
-        chosen_role = click.prompt(f'Enter the index of your chosen role', type=int)
+        for index, role in enumerate(roles):
+            print(f'[{index}] - {role[1]}')
+        chosen_role = typer.prompt('Enter the index of your chosen role', type=int)
     else:
         chosen_role = 0
 
-    duration = click.prompt(f'Enter session duration in hours', type=int, default=1)
+    duration = typer.prompt('Enter session duration in hours', type=int, default=1)
 
-    auth_provider.assume_role(provider, kwargs['profile'], roles[chosen_role], duration * 60 * 60)
-
-def _output_roles(roles):
-    for index, role in enumerate(roles):
-        print(f'[{index}] - {role[1]}')
+    auth_provider.assume_role(provider, profile, roles[chosen_role], duration * 60 * 60)
+    
 
 if __name__ == '__main__':
-    main()
+    app()

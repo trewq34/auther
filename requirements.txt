@@ -1,6 +1,6 @@
-click==7.1.2
 requests==2.24.0
 boto3==1.14.57
 bs4==0.0.1
 pyppeteer==0.2.6
 asyncio==3.4.3
+typer==0.4.1
