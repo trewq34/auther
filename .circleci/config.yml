@@ -1,0 +1,58 @@
+version: 2.1
+
+workflows:
+  build-upload:
+    jobs:
+      - build-upload-pypi:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
+      - build-push-docker:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+)?$/
+
+jobs:
+  build-upload-pypi:
+    docker:
+      - image: trussworks/ghr:latest
+    steps:
+      - checkout
+      - run:
+          name: Build and upload to PyPI
+          command: |
+            python -m pip install build twine
+            python -m build --wheel --sdist
+            python -m twine check dist/*
+            python -m twine upload --repository testpypi -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
+      - run:
+          name: Create Github release
+          command: |
+            ghr -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 ${CIRCLE_TAG:-$(cat setup.py | egrep -o "([0-9]+)\.([0-9]+)\.([0-9]+)")} dist/
+
+  build-push-docker:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - setup_remote_docker:
+          version: 20.10.11
+      - run:
+          name: Setup environment for multi-platform builds
+          command: |
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker context create buildx-build
+            docker buildx create --use --platform linux/arm64,linux/amd64 buildx-build
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker buildx inspect --bootstrap
+            docker buildx ls
+      - checkout
+      - run:
+          name: Set version env var
+          command: echo 'export VERSION='${CIRCLE_TAG:-$(cat setup.py | egrep -o "([0-9]+)\.([0-9]+)\.([0-9]+)")} >> $BASH_ENV
+      - run:
+          name: Build docker image
+          command: docker buildx build . --platform linux/arm64,linux/amd64 -t trewq34/auther-test:${VERSION} -t trewq34/auther-test:latest --push
