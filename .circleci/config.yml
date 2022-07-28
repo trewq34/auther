@@ -28,7 +28,7 @@ jobs:
             python -m pip install build twine
             python -m build --wheel --sdist
             python -m twine check dist/*
-            python -m twine upload --repository testpypi -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
+            python -m twine upload -u $PYPI_USERNAME -p $PYPI_PASSWORD dist/*
       - run:
           name: Create Github release
           command: |
