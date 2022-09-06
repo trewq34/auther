@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="auther",
-    version="0.0.6-dev3",
+    version="0.0.6-dev4",
     author="Kamran Ali",
     author_email="auther@trewq34.com",
     description="Command line tool for AWS CLI authentication",
