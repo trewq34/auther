@@ -104,15 +104,16 @@ async def _input_username(page, username):
 
 
 async def _input_password(page, password):
-    input_selector = 'input[type="password"][name="passwd"]'
-    submit_selector = 'input[type="submit"][value="Sign in"]'
+    input_selector = 'input[type="password"][name="passwd"],input[type="password"][name="Password"]'
+    submit_selector = 'input[type="submit"][value="Sign in"],span[class=submit]'
     error_selector = "#passwordError"
 
     while True:
         while password in [None, ""]:
             password = getpass.getpass("Password: ")
 
-        await page.type(input_selector, password)
+        await page.focus(input_selector)
+        await page.keyboard.type(password)
         await page.click(submit_selector)
         await asyncio.sleep(1)
 
@@ -199,6 +200,7 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
     while not roles:
         time_diff = (during-before).seconds
         if (time_diff >= 60):
+            await page.screenshot({'path': '/root/.aws/timeout.png'})
             raise Exception('hit timeout')
 
         page.on("request", samlHandler)
@@ -209,6 +211,10 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
             await _input_username(page, username)
         elif await _check_for_visible_element(
             page, 'input[type="password"][name="passwd"]'
+        ):
+            await _input_password(page, password)
+        elif await _check_for_visible_element(
+            page, 'input[type="password"][name="Password"]'
         ):
             await _input_password(page, password)
         elif await _check_for_visible_element(page, 'input[name="otc"]'):
