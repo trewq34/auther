@@ -40,8 +40,8 @@ def create_login_url(app_id, tenant_id):
 
     return f'https://login.microsoftonline.com/{tenant_id}/saml2?SAMLRequest={urllib.parse.quote(encoded)}'
 
-async def _load_login(url, headless):
-    launch_options = {"headless": headless}
+async def _load_login(url):
+    launch_options = {"headless": bool(os.environ.get('AUTHER_HEADLESS', True))}
 
     chromium_exe = os.environ.get('CHROME_BIN', '')
 
@@ -189,8 +189,8 @@ def _get_roles(encoded_xml):
                 saml_roles.append((assertion_encoded, role_arn, principal_arn))
     return saml_roles
 
-async def _auth(url, username=None, password=None, headless=True, stay_signed_in=False):
-    browser, page = await _load_login(url, headless)
+async def _auth(url, username=None, password=None, stay_signed_in=False):
+    browser, page = await _load_login(url)
 
     global roles
     roles = []
@@ -253,14 +253,12 @@ def do_login(
     url,
     username=None,
     password=None,
-    headless=True,
     stay_signed_in=False):
     return asyncio.get_event_loop().run_until_complete(
         _auth(
             url,
             username=username,
             password=password,
-            headless=headless,
             stay_signed_in=stay_signed_in,
         )
     )
