@@ -41,7 +41,7 @@ def create_login_url(app_id, tenant_id):
     return f'https://login.microsoftonline.com/{tenant_id}/saml2?SAMLRequest={urllib.parse.quote(encoded)}'
 
 async def _load_login(url):
-    launch_options = {"headless": bool(os.environ.get('AUTHER_HEADLESS', True))}
+    launch_options = {"headless": bool(int(os.environ.get('AUTHER_HEADLESS', 1)))}
 
     chromium_exe = os.environ.get('CHROME_BIN', '')
 
