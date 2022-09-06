@@ -50,7 +50,8 @@ async def _load_login(url, headless):
                 '--single-process',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
-                '--no-zygote'
+                '--no-zygote',
+                '--auth-server-whitelist="_"'
             ])
     page = await browser.newPage()
     response = await page.goto(
@@ -226,6 +227,7 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
         elif await _check_for_visible_element(
             page, 'div[data-bind="text: unsafe_exceptionMessage"]'
         ):
+            await page.screenshot({'path': '~/.aws/failure.png'})
             print(
                 'Something went wrong - set "headless=False" in the do_login method and try again to debug.'
             )
