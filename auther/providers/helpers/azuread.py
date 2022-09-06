@@ -201,7 +201,10 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
     while not roles:
         time_diff = (during-before).seconds
         if (time_diff >= 60):
-            await page.screenshot({'path': '/root/.aws/timeout.png'})
+            try:
+                await page.screenshot({'path': '/root/.aws/timeout.png'})
+            except:
+                await page.screenshot({'path': 'timeout.png'})
             raise Exception('hit timeout')
 
         page.on("request", samlHandler)
@@ -227,7 +230,10 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
         elif await _check_for_visible_element(
             page, 'div[data-bind="text: unsafe_exceptionMessage"]'
         ):
-            await page.screenshot({'path': '~/.aws/failure.png'})
+            try:
+                await page.screenshot({'path': '/root/.aws/failure.png'})
+            except:
+                await page.screenshot({'path': 'failure.png'})
             print(
                 'Something went wrong - set "headless=False" in the do_login method and try again to debug.'
             )
