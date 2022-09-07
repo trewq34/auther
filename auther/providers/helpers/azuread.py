@@ -51,7 +51,8 @@ async def _load_login(url):
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
                 '--no-zygote',
-                '--auth-server-allowlist="_"'
+                '--auth-server-whitelist="_"',
+                '--auth-negotiate-delegate-whitelist="_"'
             ])
     page = await browser.newPage()
     response = await page.goto(
