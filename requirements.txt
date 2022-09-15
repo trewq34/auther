@@ -1,6 +1,10 @@
-requests==2.24.0
-boto3==1.14.57
+requests
+boto3
+botocore
 bs4==0.0.1
-pyppeteer==0.2.6
-asyncio==3.4.3
+# pyppeteer==0.2.6
+# asyncio==3.4.3
 typer==0.4.1
+selenium==4.4.3
+selenium-wire==4.6.5
+webdriver-manager==3.8.3
