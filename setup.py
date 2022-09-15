@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="auther",
-    version="0.0.6-dev8",
+    version="0.0.6-dev9",
     author="Kamran Ali",
     author_email="auther@trewq34.com",
     description="Command line tool for AWS CLI authentication",
@@ -26,8 +26,11 @@ setup(
         'requests',
         'boto3',
         'bs4',
-        'pyppeteer',
-        'asyncio'
+        'selenium',
+        'selenium-wire',
+        'webdriver-manager'
+        # 'pyppeteer',
+        # 'asyncio'
     ],
     entry_points="""
         [console_scripts]
