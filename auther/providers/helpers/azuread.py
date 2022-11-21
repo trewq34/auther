@@ -40,17 +40,19 @@ def create_login_url(app_id, tenant_id):
 
     return f'https://login.microsoftonline.com/{tenant_id}/saml2?SAMLRequest={urllib.parse.quote(encoded)}'
 
-async def _load_login(url, headless):
-    launch_options = {"headless": headless}
+async def _load_login(url):
+    launch_options = {"headless": bool(int(os.environ.get('AUTHER_HEADLESS', 1)))}
 
-    chromium_exe = os.environ.get('CHROME_BIN', '')
+    chromium_exe = os.environ.get('AUTHER_CHROME_BIN', '')
 
     browser = await pyppeteer.launch(executablePath=chromium_exe , options=launch_options, args=[
                 '--no-sandbox',
                 '--single-process',
                 '--disable-dev-shm-usage',
                 '--disable-gpu',
-                '--no-zygote'
+                '--no-zygote',
+                '--auth-server-whitelist="_"',
+                '--auth-negotiate-delegate-whitelist="_"'
             ])
     page = await browser.newPage()
     response = await page.goto(
@@ -104,15 +106,16 @@ async def _input_username(page, username):
 
 
 async def _input_password(page, password):
-    input_selector = 'input[type="password"][name="passwd"]'
-    submit_selector = 'input[type="submit"][value="Sign in"]'
+    input_selector = 'input[type="password"][name="passwd"],input[type="password"][name="Password"]'
+    submit_selector = 'input[type="submit"][value="Sign in"],span[class=submit]'
     error_selector = "#passwordError"
 
     while True:
         while password in [None, ""]:
             password = getpass.getpass("Password: ")
 
-        await page.type(input_selector, password)
+        await page.focus(input_selector)
+        await page.keyboard.type(password)
         await page.click(submit_selector)
         await asyncio.sleep(1)
 
@@ -154,6 +157,17 @@ async def _input_code(page, code):
             # wait for one of the above to appear
             await asyncio.sleep(0.25)
 
+async def _input_notify(page):
+    input_selector = '#idDiv_SAOTCAS_Title'
+
+    print('MFA notification sent, approve on your device.')
+
+    while True:
+        if not await _check_for_visible_element(page, input_selector):
+            return
+        # wait for the MFA notification message to disappear
+        await asyncio.sleep(0.25)
+
 async def _input_stay_signed_in(page, stay_signed_in):
     if stay_signed_in:
         await page.click('input[type="checkbox"][name="DontShowAgain"]')
@@ -187,8 +201,8 @@ def _get_roles(encoded_xml):
                 saml_roles.append((assertion_encoded, role_arn, principal_arn))
     return saml_roles
 
-async def _auth(url, username=None, password=None, headless=True, stay_signed_in=False):
-    browser, page = await _load_login(url, headless)
+async def _auth(url, username=None, password=None, stay_signed_in=False):
+    browser, page = await _load_login(url)
 
     global roles
     roles = []
@@ -199,6 +213,10 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
     while not roles:
         time_diff = (during-before).seconds
         if (time_diff >= 60):
+            try:
+                await page.screenshot({'path': '/root/.aws/timeout.png'})
+            except:
+                await page.screenshot({'path': 'timeout.png'})
             raise Exception('hit timeout')
 
         page.on("request", samlHandler)
@@ -211,8 +229,14 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
             page, 'input[type="password"][name="passwd"]'
         ):
             await _input_password(page, password)
+        elif await _check_for_visible_element(
+            page, 'input[type="password"][name="Password"]'
+        ):
+            await _input_password(page, password)
         elif await _check_for_visible_element(page, 'input[name="otc"]'):
             await _input_code(page, None)
+        elif await _check_for_visible_element(page, '#idDiv_SAOTCAS_Title'):
+            await _input_notify(page)
         elif await _check_for_visible_element(
             page, 'input[type="checkbox"][name="DontShowAgain"]'
         ):
@@ -220,8 +244,12 @@ async def _auth(url, username=None, password=None, headless=True, stay_signed_in
         elif await _check_for_visible_element(
             page, 'div[data-bind="text: unsafe_exceptionMessage"]'
         ):
+            try:
+                await page.screenshot({'path': '/root/.aws/failure.png'})
+            except:
+                await page.screenshot({'path': 'failure.png'})
             print(
-                'Something went wrong - set "headless=False" in the do_login method and try again to debug.'
+                'Something went wrong - set env var "AUTHER_HEADLESS" to 1 and try again to debug.'
             )
             await browser.close()
             break
@@ -239,14 +267,12 @@ def do_login(
     url,
     username=None,
     password=None,
-    headless=True,
     stay_signed_in=False):
     return asyncio.get_event_loop().run_until_complete(
         _auth(
             url,
             username=username,
             password=password,
-            headless=headless,
             stay_signed_in=stay_signed_in,
         )
     )
