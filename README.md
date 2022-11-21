@@ -75,7 +75,7 @@ $ auther login --help
 
 ### Chromium failed to download
 
-A common cause for this is a corporate proxy/firewall blocking such downloads. To work around this, you can set the `CHROME_BIN` environment variable pointing to your preinstalled Google Chrome, Chromium or Microsoft Edge installation (this will probably work with other Chromium based browsers too, although hasn't been tested).
+A common cause for this is a corporate proxy/firewall blocking such downloads. To work around this, you can set the `AUTHER_CHROME_BIN` environment variable pointing to your preinstalled Google Chrome, Chromium or Microsoft Edge installation (this will probably work with other Chromium based browsers too, although hasn't been tested).
 
 Some examples per OS can be seen below
 
@@ -83,26 +83,26 @@ Some examples per OS can be seen below
 
 ```console
 # Google Chrome
-$ export CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+$ export AUTHER_CHROME_BIN="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 # Microsoft Edge
-$ export CHROME_BIN="/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
+$ export AUTHER_CHROME_BIN="/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"
 
 # Chromium
-$ export CHROME_BIN="/Applications/Chromium.app/Contents/MacOS/Chromium"
+$ export AUTHER_CHROME_BIN="/Applications/Chromium.app/Contents/MacOS/Chromium"
 ```
 
 #### Windows
 
 ```powershell
 # Google Chrome
-PS C:\Users\username> $env:CHROME_BIN="C:\Program Files\Google\Chrome\Application\chrome.exe"
+PS C:\Users\username> $env:AUTHER_CHROME_BIN="C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 # Microsoft Edge
-PS C:\Users\username> $env:CHROME_BIN="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+PS C:\Users\username> $env:AUTHER_CHROME_BIN="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
 # Chromium - this depends on how you installed it. Assuming you installed it the same way I did, the path will be
-PS C:\Users\username> $env:CHROME_BIN="C:\Users\username\AppData\Local\Chromium\Application\chrome.exe"
+PS C:\Users\username> $env:AUTHER_CHROME_BIN="C:\Users\username\AppData\Local\Chromium\Application\chrome.exe"
 ```
 
 #### Linux
@@ -111,11 +111,15 @@ This will vary vastly depending on which distro you use. I've tested on RHEL 7.9
 
 ```console
 # Google Chrome
-$ export CHROME_BIN="/usr/bin/google-chrome"
+$ export AUTHER_CHROME_BIN="/usr/bin/google-chrome"
 
 # Microsoft Edge
-$ export CHROME_BIN="/usr/bin/microsoft-edge"
+$ export AUTHER_CHROME_BIN="/usr/bin/microsoft-edge"
 
 # Chromium
-$ export CHROME_BIN="/usr/bin/chromium-browser"
+$ export AUTHER_CHROME_BIN="/usr/bin/chromium-browser"
 ```
+
+### Can I run Auther in a way that lets me see what it's doing?
+
+Yep! Simply set the environment variable `AUTHER_HEADLESS` to `"1"` and run `auther login`. Your chosen browser or Chromium will appear and perform its actions. **NOTE** clicking on other elements on the loaded page could interfere with Auther and result in failed authentication attempts that would have otherwise succeeded, so please be careful in headless mode.

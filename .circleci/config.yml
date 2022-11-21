@@ -55,4 +55,4 @@ jobs:
           command: echo 'export VERSION='${CIRCLE_TAG:-$(cat setup.py | egrep -o "([0-9]+)\.([0-9]+)\.([0-9]+)")} >> $BASH_ENV
       - run:
           name: Build docker image
-          command: docker buildx build . --platform linux/arm64,linux/amd64 -t trewq34/auther-test:${VERSION} -t trewq34/auther-test:latest --push
+          command: docker buildx build . --platform linux/arm64,linux/amd64 -t trewq34/auther:${VERSION} -t trewq34/auther:latest --push
